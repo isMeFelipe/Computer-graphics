@@ -22,7 +22,7 @@
 #include <forward_list>
 #include "glut_text.h"
 #include <list>
-
+#include <vector>
 using namespace std;
 
 // Variaveis Globais
@@ -54,6 +54,9 @@ struct vertice{
     int x;
     int y;
 };
+
+std::vector<vertice> tempVertices;
+bool drawingPolygon = false;
 
 // Definicao das formas geometricas
 
@@ -108,7 +111,7 @@ void retaBresenham(int x1, int y1, int x2, int y2);
 void pushRetangulo(int x1, int y1, int x2, int y2);
 void retaRetanguloBresenham(int x1, int y1, int x2, int y2);
 void pushTriangulo(int x1, int y1, int x2, int y2, int x3, int y3);
-
+void drawPoligono(const std::list<vertice>& vertices);
 /*
  * Funcao principal
  */
@@ -130,6 +133,7 @@ int main(int argc, char** argv){
     glutAddMenuEntry("Linha", LIN);
 	glutAddMenuEntry("Retângulo", RET);
 	glutAddMenuEntry("Triângulo", TRI);
+	glutAddMenuEntry("Polígono", POL);
     glutAddMenuEntry("Sair", 0);
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 
@@ -195,6 +199,20 @@ void menu_popup(int value){
 void keyboard(unsigned char key, int x, int y){
     switch (key) { // key - variavel que possui valor ASCII da tecla precionada
         case ESC: exit(EXIT_SUCCESS); break;
+        case 13:{
+            if(modo == POL && drawingPolygon){
+                if(tempVertices.size() >= 4){
+                    pushForma(POL);
+                    for (size_t i = 0; i < tempVertices.size(); i++) {
+                        pushVertice(tempVertices[i].x, tempVertices[i].y);
+                    }
+                }
+                tempVertices.clear();
+                drawingPolygon = false;
+                glutPostRedisplay();
+            }
+            break;
+		}
     }
 }
 
@@ -202,6 +220,8 @@ void keyboard(unsigned char key, int x, int y){
  * Controle dos botoes do mouse
  */
 void mouse(int button, int state, int x, int y){
+	int mouseX = x;
+    int mouseY = height - y - 1;
     if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         if(modo == LIN){
             if(click1){
@@ -244,7 +264,16 @@ void mouse(int button, int state, int x, int y){
 		        clickCount = 0;
 		        glutPostRedisplay();
 		    }
-		}
+		} else if(modo == POL){
+            // Começa o desenho de polígono
+            if(!drawingPolygon){
+                drawingPolygon = true;
+                tempVertices.clear();
+            }
+            // adiciona o vértice atual
+           tempVertices.push_back(vertice{mouseX, mouseY});
+            glutPostRedisplay();
+        }
     }
 }
 
@@ -273,6 +302,13 @@ void drawFormas(){
     //Apos o primeiro clique, desenha a reta com a posicao atual do mouse
     if(click1) retaBresenham(x_1, y_1, m_x, m_y);
     
+    if(drawingPolygon && modo == POL && tempVertices.size() > 0){
+    for(size_t i = 0; i < tempVertices.size() - 1; i++){
+        retaBresenham(tempVertices[i].x, tempVertices[i].y, tempVertices[i+1].x, tempVertices[i+1].y);
+    }
+    // Linha provisória até o mouse atual
+    retaBresenham(tempVertices.back().x, tempVertices.back().y, m_x, m_y);
+    }
     //Percorre a lista de formas geometricas para desenhar
     for(forward_list<forma>::iterator f = formas.begin(); f != formas.end(); f++){
         switch (f->tipo) {
@@ -314,6 +350,10 @@ void drawFormas(){
 			    retaBresenham(x[2], y[2], x[0], y[0]);
 		   	    break;
 			}
+			 case POL: {
+                drawPoligono(f->v);
+                break;
+            }
 
         }
     }
@@ -426,3 +466,14 @@ void pushPoligono(const int x[], const int y[], int n) {
     }
 }
 
+void drawPoligono(const std::list<vertice>& vertices){
+    int n = (int)vertices.size();
+    if(n < 3) return;
+
+    std::vector<vertice> verts(vertices.begin(), vertices.end());
+    for(int i = 0; i < n - 1; i++){
+        retaBresenham(verts[i].x, verts[i].y, verts[i+1].x, verts[i+1].y);
+    }
+    // Fecha o polígono
+    retaBresenham(verts[n-1].x, verts[n-1].y, verts[0].x, verts[0].y);
+}
