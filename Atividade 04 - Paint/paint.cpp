@@ -24,6 +24,7 @@
 #include <list>
 #include <vector>
 #include <cmath>
+#include <algorithm>
 
 using namespace std;
 
@@ -61,6 +62,8 @@ int width = 512, height = 512;
 
 int clickCount = 0;
 int x_clicks[3], y_clicks[3];
+
+bool preenchimentoAtivo = false; // definido pela tecla p/P
 
 // Definicao de vertice
 struct vertice
@@ -137,6 +140,9 @@ void refletirForma(forma &f, bool refletirX, bool refletirY);
 void rotacionarForma(forma &f, float angulo_graus);
 void drawCircleBresenham(int xc, int yc, int radius);
 void pushCirculo(int xc, int yc, int radius);
+void fillPolygon(const std::list<vertice> &vertices);
+void fillRectangle(int x1, int y1, int x2, int y2);
+void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
 
 /*
  * Funcao principal
@@ -227,7 +233,7 @@ void menu_popup(int value)
 void keyboard(unsigned char key, int x, int y)
 {
     switch (key)
-    { // key - variavel que possui valor ASCII da tecla precionada
+    {
     case ESC:
         exit(EXIT_SUCCESS);
         break;
@@ -247,6 +253,14 @@ void keyboard(unsigned char key, int x, int y)
             drawingPolygon = false;
             glutPostRedisplay();
         }
+        break;
+    }
+    case 'p':
+    case 'P':
+    {
+        preenchimentoAtivo = !preenchimentoAtivo;
+        printf("Preenchimento %s\n", preenchimentoAtivo ? "Ativado" : "Desativado");
+        glutPostRedisplay();
         break;
     }
     case 't':
@@ -515,6 +529,10 @@ void drawFormas()
                 y[j] = verts[i - 1 - j].y;
             }
             retaRetanguloBresenham(x[0], y[0], x[2], y[2]);
+
+            if (preenchimentoAtivo)
+                fillRectangle(x[0], y[0], x[2], y[2]);
+
             break;
         }
         case TRI:
@@ -529,11 +547,16 @@ void drawFormas()
             retaBresenham(x[0], y[0], x[1], y[1]);
             retaBresenham(x[1], y[1], x[2], y[2]);
             retaBresenham(x[2], y[2], x[0], y[0]);
+
+            if (preenchimentoAtivo)
+                fillTriangle(x[0], y[0], x[1], y[1], x[2], y[2]);
             break;
         }
         case POL:
         {
             drawPoligono(f->v);
+            if (preenchimentoAtivo)
+                fillPolygon(f->v);
             break;
         }
         case CIR:
@@ -864,4 +887,126 @@ void pushCirculo(int xc, int yc, int radius)
     pushForma(CIR);
     pushVertice(xc, yc);          // Centro do círculo
     pushVertice(xc + radius, yc); // Ponto para armazenar o raio (pode ser qualquer ponto na circunferência)
+}
+
+/*
+ * Função para preencher polígonos usando o algoritmo scanline
+ */
+/*
+ * Função para preencher polígonos usando o algoritmo scanline (sintaxe antiga)
+ */
+void fillPolygon(const std::list<vertice> &vertices)
+{
+    if (vertices.size() < 3)
+        return; // Precisa de pelo menos 3 vértices para formar um polígono
+
+    // Encontra os limites mínimo e máximo em y
+    int ymin = height, ymax = 0;
+    for (std::list<vertice>::const_iterator it = vertices.begin(); it != vertices.end(); ++it)
+    {
+        const vertice &v = *it;
+        if (v.y < ymin)
+            ymin = v.y;
+        if (v.y > ymax)
+            ymax = v.y;
+    }
+
+    // Converte a lista de vértices para um vetor para facilitar o acesso
+    std::vector<vertice> verts;
+    for (std::list<vertice>::const_iterator it = vertices.begin(); it != vertices.end(); ++it)
+    {
+        verts.push_back(*it);
+    }
+    int n = verts.size();
+
+    // Para cada linha de varredura (scanline)
+    for (int y = ymin; y <= ymax; y++)
+    {
+        std::vector<int> intersections;
+
+        // Encontra todas as interseções da scanline com as arestas do polígono
+        for (int i = 0; i < n; i++)
+        {
+            int j = (i + 1) % n;
+            int y1 = verts[i].y;
+            int y2 = verts[j].y;
+
+            // Verifica se a aresta cruza a scanline
+            if ((y1 <= y && y2 > y) || (y2 <= y && y1 > y))
+            {
+                // Calcula a interseção usando interpolação
+                float x = verts[i].x + (float)(y - y1) / (float)(y2 - y1) * (verts[j].x - verts[i].x);
+                intersections.push_back((int)x);
+            }
+        }
+
+        // Ordena as interseções em ordem crescente de x
+        std::sort(intersections.begin(), intersections.end());
+
+        // Preenche os pixels entre pares de interseções
+        for (size_t i = 0; i < intersections.size(); i += 2)
+        {
+            if (i + 1 >= intersections.size())
+                break;
+            int x1 = intersections[i];
+            int x2 = intersections[i + 1];
+
+            // Desenha a linha horizontal entre x1 e x2
+            for (int x = x1; x <= x2; x++)
+            {
+                drawPixel(x, y);
+            }
+        }
+    }
+}
+
+/*
+ * Função para preencher um retângulo
+ */
+void fillRectangle(int x1, int y1, int x2, int y2)
+{
+    // Garante que x1 < x2 e y1 < y2
+    if (x1 > x2)
+        std::swap(x1, x2);
+    if (y1 > y2)
+        std::swap(y1, y2);
+
+    // Preenche linha por linha
+    for (int y = y1; y <= y2; y++)
+    {
+        for (int x = x1; x <= x2; x++)
+        {
+            drawPixel(x, y);
+        }
+    }
+}
+
+/*
+ * Função para preencher um triângulo
+ */
+void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3)
+{
+    // Cria uma lista temporária de vértices
+    std::list<vertice> vertices;
+
+    // Cria objetos vertice explicitamente
+    vertice v1;
+    v1.x = x1;
+    v1.y = y1;
+
+    vertice v2;
+    v2.x = x2;
+    v2.y = y2;
+
+    vertice v3;
+    v3.x = x3;
+    v3.y = y3;
+
+    // Adiciona os vértices à lista
+    vertices.push_back(v1);
+    vertices.push_back(v2);
+    vertices.push_back(v3);
+
+    // Usa o mesmo algoritmo de preenchimento de polígonos
+    fillPolygon(vertices);
 }
