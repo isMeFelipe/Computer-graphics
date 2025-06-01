@@ -135,6 +135,8 @@ void escalarForma(forma &f, float sx, float sy);
 void cisalharForma(forma &f, float shx, float shy);
 void refletirForma(forma &f, bool refletirX, bool refletirY);
 void rotacionarForma(forma &f, float angulo_graus);
+void drawCircleBresenham(int xc, int yc, int radius);
+void pushCirculo(int xc, int yc, int radius);
 
 /*
  * Funcao principal
@@ -159,6 +161,7 @@ int main(int argc, char **argv)
     glutAddMenuEntry("Retângulo", RET);
     glutAddMenuEntry("Triângulo", TRI);
     glutAddMenuEntry("Polígono", POL);
+    glutAddMenuEntry("Círculo", CIR);
     glutAddMenuEntry("Sair", 0);
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 
@@ -406,6 +409,27 @@ void mouse(int button, int state, int x, int y)
             tempVertices.push_back(vertice{mouseX, mouseY});
             glutPostRedisplay();
         }
+        else if (modo == CIR)
+        {
+            if (click1)
+            {
+                x_2 = x;
+                y_2 = height - y - 1;
+                // Calcula o raio como a distância entre os dois pontos
+                int radius = (int)sqrt(pow(x_2 - x_1, 2) + pow(y_2 - y_1, 2));
+                printf("Clique 2 (%d, %d), raio: %d\n", x_2, y_2, radius);
+                pushCirculo(x_1, y_1, radius);
+                click1 = false;
+                glutPostRedisplay();
+            }
+            else
+            {
+                click1 = true;
+                x_1 = x;
+                y_1 = height - y - 1;
+                printf("Clique 1 (centro) (%d, %d)\n", x_1, y_1);
+            }
+        }
     }
 }
 
@@ -436,7 +460,17 @@ void drawFormas()
 {
     // Apos o primeiro clique, desenha a reta com a posicao atual do mouse
     if (click1)
-        retaBresenham(x_1, y_1, m_x, m_y);
+    {
+        if (modo == CIR)
+        {
+            int radius = (int)sqrt(pow(m_x - x_1, 2) + pow(m_y - y_1, 2));
+            drawCircleBresenham(x_1, y_1, radius);
+        }
+        else
+        {
+            retaBresenham(x_1, y_1, m_x, m_y);
+        }
+    }
 
     if (drawingPolygon && modo == POL && tempVertices.size() > 0)
     {
@@ -500,6 +534,21 @@ void drawFormas()
         case POL:
         {
             drawPoligono(f->v);
+            break;
+        }
+        case CIR:
+        {
+            if (f->v.size() >= 2)
+            {
+                auto it = f->v.begin();
+                int xc = it->x; // Centro x
+                int yc = it->y; // Centro y
+                it++;
+                int xr = it->x;                                            // Ponto no raio (x)
+                int yr = it->y;                                            // Ponto no raio (y)
+                int radius = (int)sqrt(pow(xr - xc, 2) + pow(yr - yc, 2)); // Calcula raio corretamente
+                drawCircleBresenham(xc, yc, radius);
+            }
             break;
         }
         }
@@ -777,4 +826,42 @@ void rotacionarForma(forma &f, float angulo_graus)
         it->x = x_rot + centro_x;
         it->y = y_rot + centro_y;
     }
+}
+
+void drawCircleBresenham(int xc, int yc, int radius)
+{
+    int x = 0;
+    int y = radius;
+    int d = 3 - 2 * radius;
+
+    while (x <= y)
+    {
+        // Desenha os 8 pontos simétricos
+        drawPixel(xc + x, yc + y);
+        drawPixel(xc - x, yc + y);
+        drawPixel(xc + x, yc - y);
+        drawPixel(xc - x, yc - y);
+        drawPixel(xc + y, yc + x);
+        drawPixel(xc - y, yc + x);
+        drawPixel(xc + y, yc - x);
+        drawPixel(xc - y, yc - x);
+
+        if (d < 0)
+        {
+            d = d + 4 * x + 6;
+        }
+        else
+        {
+            d = d + 4 * (x - y) + 10;
+            y--;
+        }
+        x++;
+    }
+}
+
+void pushCirculo(int xc, int yc, int radius)
+{
+    pushForma(CIR);
+    pushVertice(xc, yc);          // Centro do círculo
+    pushVertice(xc + radius, yc); // Ponto para armazenar o raio (pode ser qualquer ponto na circunferência)
 }
