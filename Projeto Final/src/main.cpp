@@ -5,6 +5,20 @@
 void display()
 {
     glClear(GL_COLOR_BUFFER_BIT);
+
+    // Câmera segue o jogador verticalmente
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    float cameraY = playerY - 300; // Mantém jogador no centro vertical da tela
+    if (cameraY < 0)
+        cameraY = 0;
+
+    gluOrtho2D(0, 800, cameraY, cameraY + 600); // Janela de visualização móvel
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
     renderGame();
     glutSwapBuffers();
 }

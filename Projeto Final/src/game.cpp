@@ -3,26 +3,40 @@
 #include "globals.h"
 #include <GL/glut.h>
 #include <cmath>
+#include <ctime>
 
 float laranjaX = 370, laranjaY = 550;
 
-void initScenario() {
-    platforms[0] = {50, 100, 700, 20};
-    platforms[1] = {100, 200, 600, 20};
-    platforms[2] = {150, 300, 500, 20};
-    platforms[3] = {200, 400, 400, 20};
-    platforms[4] = {250, 500, 300, 20};
+void initScenario()
+{
+    std::srand(static_cast<unsigned int>(time(0))); // Seed para unificar mapa
+
+    float minWidth = 150;
+    float maxWidth = 500;
+    float gapY = 80;
+
+    for (int i = 0; i < PLATFORM_COUNT; i++)
+    {
+        float width = minWidth + std::rand() % static_cast<int>(maxWidth - minWidth + 1);
+        float x = std::rand() % static_cast<int>(800 - width);
+        float y = 100 + i * gapY;
+
+        platforms[i] = {x, y, width, 20};
+    }
 }
 
-void updatePlayerPhysics() {
+void updatePlayerPhysics()
+{
     playerVelocityY -= gravity;
     playerY += playerVelocityY;
     playerOnGround = false;
-    
-    for (int i = 0; i < 5; ++i) {
+
+    for (int i = 0; i < 5; ++i)
+    {
         Platform p = platforms[i];
 
-        if (ignorePlatform) continue; // Ignora colisões se o jogador estiver ignorando plataformas (descendo)
+        if (ignorePlatform)
+            continue; // Ignora colisões se o jogador estiver ignorando plataformas (descendo)
 
         // Coordenadas do jogador
         float playerBottom = playerY;
@@ -39,7 +53,8 @@ void updatePlayerPhysics() {
         bool horizontalOverlap = playerRight > platLeft && playerLeft < platRight;
         bool verticalCollision = playerBottom <= platTop && playerBottom >= platTop - fabs(playerVelocityY);
 
-        if (horizontalOverlap && verticalCollision && playerVelocityY <= 0) {
+        if (horizontalOverlap && verticalCollision && playerVelocityY <= 0)
+        {
             // Corrige posição
             playerY = platTop;
             playerVelocityY = 0;
@@ -48,33 +63,38 @@ void updatePlayerPhysics() {
     }
 
     // Colisão com o chão
-    if (playerY < 0) {
+    if (playerY < 0)
+    {
         playerY = 0;
         playerVelocityY = 0;
         playerOnGround = true;
     }
 }
 
-void initGame() {
+void initGame()
+{
     initScenario();
     initPlayer();
     loadPlayerTexture();
 }
 
-void updateGame() {
+void updateGame()
+{
     updatePlayerPhysics();
-    updatePlayer();  // Atualiza posição lateral e entrada do teclado
+    updatePlayer(); // Atualiza posição lateral e entrada do teclado
 }
 
-void renderScenario() {
+void renderScenario()
+{
     glColor3f(0.6f, 0.3f, 0.1f);
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++)
+    {
         Platform p = platforms[i];
         glBegin(GL_QUADS);
-            glVertex2f(p.x, p.y);
-            glVertex2f(p.x + p.width, p.y);
-            glVertex2f(p.x + p.width, p.y + p.height);
-            glVertex2f(p.x, p.y + p.height);
+        glVertex2f(p.x, p.y);
+        glVertex2f(p.x + p.width, p.y);
+        glVertex2f(p.x + p.width, p.y + p.height);
+        glVertex2f(p.x, p.y + p.height);
         glEnd();
     }
 
@@ -86,23 +106,26 @@ void renderScenario() {
     int seg = 30;
     glBegin(GL_TRIANGLE_FAN);
     glVertex2f(cx, cy);
-    for (int i = 0; i <= seg; ++i) {
+    for (int i = 0; i <= seg; ++i)
+    {
         float ang = 2.0f * 3.1415926f * i / seg;
         glVertex2f(cx + cos(ang) * radius, cy + sin(ang) * radius);
     }
     glEnd();
 }
 
-void renderGame() {
+void renderGame()
+{
     renderScenario();
     renderPlayer();
 }
 
-void handleKeyPress(unsigned char key, int x, int y) {
+void handleKeyPress(unsigned char key, int x, int y)
+{
     playerKeyPress(key, x, y);
 }
 
-void handleKeyRelease(unsigned char key, int x, int y) {
+void handleKeyRelease(unsigned char key, int x, int y)
+{
     playerKeyRelease(key, x, y);
 }
-

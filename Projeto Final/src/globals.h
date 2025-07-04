@@ -1,8 +1,8 @@
 #include "platform.h"
 
-extern Platform platforms[5];
-// Constantes globais
+#define PLATFORM_COUNT 30
+extern Platform platforms[PLATFORM_COUNT];
+
 extern const float gravity;
-// Tamanho do jogador
 const float PLAYER_WIDTH = 32.0f;
 const float PLAYER_HEIGHT = 32.0f;
