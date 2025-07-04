@@ -2,7 +2,6 @@
 #include "game.h"
 #include "player.h"
 
-
 void display()
 {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -24,9 +23,12 @@ int main(int argc, char **argv)
     glutInitWindowSize(800, 600);
     glutCreateWindow("Donkey Kong Laranja");
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     // REGISTROS DE INPUT
-    glutKeyboardFunc(playerKeyPress);   
-    glutKeyboardUpFunc(playerKeyRelease); 
+    glutKeyboardFunc(playerKeyPress);
+    glutKeyboardUpFunc(playerKeyRelease);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -40,4 +42,3 @@ int main(int argc, char **argv)
     glutMainLoop();
     return 0;
 }
-

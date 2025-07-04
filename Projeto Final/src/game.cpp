@@ -58,6 +58,7 @@ void updatePlayerPhysics() {
 void initGame() {
     initScenario();
     initPlayer();
+    loadPlayerTexture();
 }
 
 void updateGame() {
