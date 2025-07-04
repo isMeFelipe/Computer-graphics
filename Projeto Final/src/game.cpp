@@ -1,20 +1,30 @@
 #include "game.h"
 #include "player.h"
 #include "globals.h"
+
 #include <GL/glut.h>
 #include <cmath>
 #include <ctime>
 #include <vector>
+#include <cstdlib> // Para rand(), srand()
 
+// Posição da laranja
 float laranjaX = 370, laranjaY = 550;
+
+// Prototipação
 float getRandomLadderXPosition(const std::vector<float> &existingXs, float minDistance);
 
+// =========================
+// Inicialização do cenário
+// =========================
 void initScenario()
 {
     std::srand(static_cast<unsigned int>(time(0)));
 
     float platformWidth = 800.0f;
     float gapY = 80;
+    float minDistance = 100.0f;
+    std::vector<float> usedLadderXs;
 
     // Cria plataformas de ponta a ponta
     for (int i = 0; i < PLATFORM_COUNT; ++i)
@@ -24,31 +34,16 @@ void initScenario()
         platforms[i] = {x, y, platformWidth, 20};
     }
 
-    std::vector<float> usedLadderXs;
-    float minDistance = 100.0f;
-
-    // Escada do chão para a primeira plataforma
+    // Cria escadas
+    for (int i = 0; i < LADDER_COUNT; ++i)
     {
-        Platform first = platforms[0];
-        float ladderX = getRandomLadderXPosition(usedLadderXs, minDistance);
-        usedLadderXs.push_back(ladderX);
-
-        float ladderY = 0;
-        float ladderHeight = first.y - ladderY + PLAYER_HEIGHT;
-
-        ladders[0] = {ladderX, ladderY, 20, ladderHeight};
-    }
-
-    // Escadas entre plataformas
-    for (int i = 1; i < LADDER_COUNT; ++i)
-    {
-        Platform lower = platforms[i - 1];
+        Platform lower = (i == 0) ? Platform{0, 0, 0, 0} : platforms[i - 1];
         Platform upper = platforms[i];
 
         float ladderX = getRandomLadderXPosition(usedLadderXs, minDistance);
         usedLadderXs.push_back(ladderX);
 
-        float ladderY = lower.y + lower.height;
+        float ladderY = (i == 0) ? 0 : lower.y + lower.height;
         float ladderHeight = upper.y - ladderY + PLAYER_HEIGHT;
 
         ladders[i] = {ladderX, ladderY, 20, ladderHeight};
@@ -64,8 +59,8 @@ float getRandomLadderXPosition(const std::vector<float> &existingXs, float minDi
     for (int attempt = 0; attempt < 100; ++attempt)
     {
         float candidateX = minX + std::rand() % (maxX - minX + 1);
-
         bool tooClose = false;
+
         for (float x : existingXs)
         {
             if (std::fabs(candidateX - x) < minDistance)
@@ -79,41 +74,40 @@ float getRandomLadderXPosition(const std::vector<float> &existingXs, float minDi
             return candidateX;
     }
 
-    // Se não conseguir encontrar posição válida após 100 tentativas, retorna mesmo assim
+    // Fallback se não encontrar posição válida
     return minX + std::rand() % (maxX - minX + 1);
 }
 
+// ============================
+// Atualização da física do jogador
+// ============================
 void updatePlayerPhysics()
 {
     playerVelocityY -= gravity;
     playerY += playerVelocityY;
     playerOnGround = false;
 
-    for (int i = 0; i < 5; ++i)
+    for (int i = 0; i < PLATFORM_COUNT; ++i)
     {
+        if (ignorePlatform)
+            continue;
+
         Platform p = platforms[i];
 
-        if (ignorePlatform)
-            continue; // Ignora colisões se o jogador estiver ignorando plataformas (descendo)
-
-        // Coordenadas do jogador
         float playerBottom = playerY;
         float playerTop = playerY + PLAYER_HEIGHT;
         float playerLeft = playerX;
         float playerRight = playerX + PLAYER_WIDTH;
 
-        // Coordenadas da plataforma
         float platTop = p.y + p.height;
         float platLeft = p.x;
         float platRight = p.x + p.width;
 
-        // Verifica se o jogador caiu sobre a plataforma
         bool horizontalOverlap = playerRight > platLeft && playerLeft < platRight;
-        bool verticalCollision = playerBottom <= platTop && playerBottom >= platTop - fabs(playerVelocityY);
+        bool verticalCollision = playerBottom <= platTop && playerBottom >= platTop - std::fabs(playerVelocityY);
 
         if (horizontalOverlap && verticalCollision && playerVelocityY <= 0)
         {
-            // Corrige posição
             playerY = platTop;
             playerVelocityY = 0;
             playerOnGround = true;
@@ -152,6 +146,9 @@ void checkLadderCollision()
     }
 }
 
+// ======================
+// Inicialização e update
+// ======================
 void initGame()
 {
     initScenario();
@@ -166,13 +163,17 @@ void updateGame()
     if (!playerOnLadder)
         updatePlayerPhysics();
 
-    updatePlayer(); // Atualiza posição lateral e entrada do teclado
+    updatePlayer();
 }
 
+// ===============
+// Renderização
+// ===============
 void renderScenario()
 {
+    // Plataformas
     glColor3f(0.6f, 0.3f, 0.1f);
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < PLATFORM_COUNT; i++)
     {
         Platform p = platforms[i];
         glBegin(GL_QUADS);
@@ -183,8 +184,8 @@ void renderScenario()
         glEnd();
     }
 
-    // Desenhar escadas
-    glColor3f(0.7f, 0.7f, 1.0f); // cor azul clara
+    // Escadas
+    glColor3f(0.7f, 0.7f, 1.0f);
     for (int i = 0; i < LADDER_COUNT; ++i)
     {
         Ladder l = ladders[i];
@@ -218,6 +219,9 @@ void renderGame()
     renderPlayer();
 }
 
+// ===============
+// Entrada de Teclado
+// ===============
 void handleKeyPress(unsigned char key, int x, int y)
 {
     playerKeyPress(key, x, y);

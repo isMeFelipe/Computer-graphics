@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(0, 800, 0, 600);
+    gluOrtho2D(0, 1600, 0, 1200);
 
     initGame();
 
