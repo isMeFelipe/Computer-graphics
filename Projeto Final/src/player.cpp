@@ -22,6 +22,9 @@ bool keyLeftPressed = false;
 bool keyRightPressed = false;
 bool facingRight = true;
 
+bool climbingUp = false;
+bool climbingDown = false;
+
 // --- Texturas ---
 GLuint idleTexture;
 GLuint walkTexture;
@@ -93,9 +96,16 @@ void updatePlayer()
     if (playerX > 768) // 800 - 32 (PLAYER_WIDTH)
         playerX = 768;
 
-    // Aplica gravidade e movimenta verticalmente
-    playerVelocityY -= gravity;
-    playerY += playerVelocityY;
+    // Aplica gravidade e movimenta verticalmente, exceto se estiver na escada
+    if (!playerOnLadder)
+    {
+        playerVelocityY -= gravity;
+        playerY += playerVelocityY;
+    }
+    else
+    {
+        playerVelocityY = 0; // Sem gravidade
+    }
 
     playerOnGround = false;
 
@@ -144,6 +154,16 @@ void updatePlayer()
             playerState = Walking;
         else
             playerState = Idle;
+    }
+
+    // Jogador da escada
+    if (playerOnLadder)
+    {
+        if (climbingUp)
+            playerY += 2;
+        if (climbingDown)
+            playerY -= 2;
+        playerVelocityY = 0; // sem gravidade enquanto sobe
     }
 
     // Atualiza frame de animação
@@ -244,14 +264,20 @@ void playerKeyPress(unsigned char key, int x, int y)
         keyRightPressed = true;
     else if (key == 'w' || key == 'W')
     {
+        // Escada
+        climbingUp = true;
+
         if (playerOnGround)
         {
-            playerVelocityY = 16.0f; // Pulo
+            playerVelocityY = 5.0f; // Pulo
             playerOnGround = false;
         }
     }
     else if (key == 's' || key == 'S')
     {
+        // Escada
+        climbingDown = true;
+
         // Descer da plataforma
         ignorePlatform = true;
         playerOnGround = false;
@@ -264,8 +290,13 @@ void playerKeyRelease(unsigned char key, int x, int y)
         keyLeftPressed = false;
     else if (key == 'd' || key == 'D')
         keyRightPressed = false;
-    else if (key == 's' || key == 'S')
+
+    if (key == 'w')
+        climbingUp = false;
+
+    if (key == 's' || key == 'S')
     {
+        climbingDown = false;
         ignorePlatform = false;
         ignoreTimer = 30; // Tempo para ignorar colisão com plataforma
     }

@@ -4,25 +4,83 @@
 #include <GL/glut.h>
 #include <cmath>
 #include <ctime>
+#include <vector>
 
 float laranjaX = 370, laranjaY = 550;
+float getRandomLadderXPosition(const std::vector<float> &existingXs, float minDistance);
 
 void initScenario()
 {
-    std::srand(static_cast<unsigned int>(time(0))); // Seed para unificar mapa
+    std::srand(static_cast<unsigned int>(time(0)));
 
-    float minWidth = 150;
-    float maxWidth = 500;
+    float platformWidth = 800.0f;
     float gapY = 80;
 
-    for (int i = 0; i < PLATFORM_COUNT; i++)
+    // Cria plataformas de ponta a ponta
+    for (int i = 0; i < PLATFORM_COUNT; ++i)
     {
-        float width = minWidth + std::rand() % static_cast<int>(maxWidth - minWidth + 1);
-        float x = std::rand() % static_cast<int>(800 - width);
+        float x = 0;
         float y = 100 + i * gapY;
-
-        platforms[i] = {x, y, width, 20};
+        platforms[i] = {x, y, platformWidth, 20};
     }
+
+    std::vector<float> usedLadderXs;
+    float minDistance = 100.0f;
+
+    // Escada do chão para a primeira plataforma
+    {
+        Platform first = platforms[0];
+        float ladderX = getRandomLadderXPosition(usedLadderXs, minDistance);
+        usedLadderXs.push_back(ladderX);
+
+        float ladderY = 0;
+        float ladderHeight = first.y - ladderY + PLAYER_HEIGHT;
+
+        ladders[0] = {ladderX, ladderY, 20, ladderHeight};
+    }
+
+    // Escadas entre plataformas
+    for (int i = 1; i < LADDER_COUNT; ++i)
+    {
+        Platform lower = platforms[i - 1];
+        Platform upper = platforms[i];
+
+        float ladderX = getRandomLadderXPosition(usedLadderXs, minDistance);
+        usedLadderXs.push_back(ladderX);
+
+        float ladderY = lower.y + lower.height;
+        float ladderHeight = upper.y - ladderY + PLAYER_HEIGHT;
+
+        ladders[i] = {ladderX, ladderY, 20, ladderHeight};
+    }
+}
+
+float getRandomLadderXPosition(const std::vector<float> &existingXs, float minDistance)
+{
+    int margin = 40;
+    int minX = margin;
+    int maxX = 800 - margin - 20;
+
+    for (int attempt = 0; attempt < 100; ++attempt)
+    {
+        float candidateX = minX + std::rand() % (maxX - minX + 1);
+
+        bool tooClose = false;
+        for (float x : existingXs)
+        {
+            if (std::fabs(candidateX - x) < minDistance)
+            {
+                tooClose = true;
+                break;
+            }
+        }
+
+        if (!tooClose)
+            return candidateX;
+    }
+
+    // Se não conseguir encontrar posição válida após 100 tentativas, retorna mesmo assim
+    return minX + std::rand() % (maxX - minX + 1);
 }
 
 void updatePlayerPhysics()
@@ -71,6 +129,29 @@ void updatePlayerPhysics()
     }
 }
 
+void checkLadderCollision()
+{
+    playerOnLadder = false;
+
+    float playerCenterX = playerX + PLAYER_WIDTH / 2;
+    float playerBottom = playerY;
+    float playerTop = playerY + PLAYER_HEIGHT;
+
+    for (int i = 0; i < LADDER_COUNT; ++i)
+    {
+        Ladder l = ladders[i];
+
+        bool inX = playerCenterX >= l.x && playerCenterX <= l.x + l.width;
+        bool inY = playerBottom <= l.y + l.height && playerTop >= l.y;
+
+        if (inX && inY)
+        {
+            playerOnLadder = true;
+            break;
+        }
+    }
+}
+
 void initGame()
 {
     initScenario();
@@ -80,7 +161,11 @@ void initGame()
 
 void updateGame()
 {
-    updatePlayerPhysics();
+    checkLadderCollision();
+
+    if (!playerOnLadder)
+        updatePlayerPhysics();
+
     updatePlayer(); // Atualiza posição lateral e entrada do teclado
 }
 
@@ -95,6 +180,19 @@ void renderScenario()
         glVertex2f(p.x + p.width, p.y);
         glVertex2f(p.x + p.width, p.y + p.height);
         glVertex2f(p.x, p.y + p.height);
+        glEnd();
+    }
+
+    // Desenhar escadas
+    glColor3f(0.7f, 0.7f, 1.0f); // cor azul clara
+    for (int i = 0; i < LADDER_COUNT; ++i)
+    {
+        Ladder l = ladders[i];
+        glBegin(GL_QUADS);
+        glVertex2f(l.x, l.y);
+        glVertex2f(l.x + l.width, l.y);
+        glVertex2f(l.x + l.width, l.y + l.height);
+        glVertex2f(l.x, l.y + l.height);
         glEnd();
     }
 
