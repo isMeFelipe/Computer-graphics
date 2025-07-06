@@ -1,9 +1,13 @@
-#ifndef LADDER_H
-#define LADDER_H
+#pragma once
+#include <GL/glut.h>
 
-struct Ladder {
+struct Ladder
+{
     float x, y;
     float width, height;
 };
 
-#endif
+extern GLuint ladderTextureID;
+
+void loadLadderTexture();
+void renderLadder(float x, float y, float width, float height);

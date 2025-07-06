@@ -132,7 +132,7 @@ void launchProjectile()
     p.vx = vilaoDirectionX * 5.0f;
     p.vy = 0;
     p.active = true;
-    p.flipX = false;
+    p.flipX = (vilaoDirectionX == -1);
 
     // Sorteia textura aleatória entre garfo, faca e colher
     int index = rand() % 3;
@@ -147,21 +147,53 @@ void launchProjectile()
 
 void updatePreview()
 {
-    previewX = vilaoX + vilaoDirectionX * 20;
+    previewX = vilaoX + vilaoDirectionX * 80.0f;
     previewY = vilaoY + projectileOffsetY;
 }
 
 void renderPreview()
 {
-    glColor4f(0, 0, 1, 1); // Azul
-    float size = 5.0f;
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, projectileTextures[1]); // Textura da faca
+
+    // Cor branca com transparência (50%)
+    glColor4f(1.0f, 1.0f, 1.0f, 0.7f);
+
+    float size = 20.0f;
 
     glBegin(GL_QUADS);
-    glVertex2f(previewX - size, previewY - size);
-    glVertex2f(previewX + size, previewY - size);
-    glVertex2f(previewX + size, previewY + size);
-    glVertex2f(previewX - size, previewY + size);
+
+    if (vilaoDirectionX == 1)
+    {
+        // Orientação normal (não espelhada)
+        glTexCoord2f(0, 0);
+        glVertex2f(previewX - size, previewY - size);
+        glTexCoord2f(1, 0);
+        glVertex2f(previewX + size, previewY - size);
+        glTexCoord2f(1, 1);
+        glVertex2f(previewX + size, previewY + size);
+        glTexCoord2f(0, 1);
+        glVertex2f(previewX - size, previewY + size);
+    }
+    else
+    {
+        // Espelhado horizontalmente
+        glTexCoord2f(1, 0);
+        glVertex2f(previewX - size, previewY - size);
+        glTexCoord2f(0, 0);
+        glVertex2f(previewX + size, previewY - size);
+        glTexCoord2f(0, 1);
+        glVertex2f(previewX + size, previewY + size);
+        glTexCoord2f(1, 1);
+        glVertex2f(previewX - size, previewY + size);
+    }
+
     glEnd();
+
+    glDisable(GL_TEXTURE_2D);
+
+    // Resetar cor para o padrão
+    glColor4f(1, 1, 1, 1);
 }
 
 // ------------------------

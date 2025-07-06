@@ -2,6 +2,7 @@
 #include "player.h"
 #include "globals.h"
 #include "vilao.h"
+#include "ladder.h"
 
 #include <GL/glut.h>
 #include <cmath>
@@ -44,10 +45,10 @@ void initScenario()
         float ladderX = getRandomLadderXPosition(usedLadderXs, minDistance);
         usedLadderXs.push_back(ladderX);
 
-        float ladderY = (i == 0) ? 0 : lower.y + lower.height;
+        float ladderY = (i == 0) ? 0 : lower.y + lower.height - PLAYER_HEIGHT;
         float ladderHeight = upper.y - ladderY + PLAYER_HEIGHT;
 
-        ladders[i] = {ladderX, ladderY, 20, ladderHeight};
+        ladders[i] = {ladderX, ladderY, 60, ladderHeight};
     }
 
     // Posicionar o vilão na última plataforma
@@ -159,6 +160,7 @@ void initGame()
     initScenario();
     initPlayer();
     loadPlayerTexture();
+    loadLadderTexture();
 }
 
 void updateGame()
@@ -191,18 +193,27 @@ void renderScenario()
         glEnd();
     }
 
-    // Escadas
-    glColor3f(0.7f, 0.7f, 1.0f);
+    // Escadas com textura
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, ladderTextureID);
+    glColor3f(1.0f, 1.0f, 1.0f); // branco para mostrar textura original
+
     for (int i = 0; i < LADDER_COUNT; ++i)
     {
         Ladder l = ladders[i];
         glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 0.0f);
         glVertex2f(l.x, l.y);
+        glTexCoord2f(1.0f, 0.0f);
         glVertex2f(l.x + l.width, l.y);
+        glTexCoord2f(1.0f, 1.0f);
         glVertex2f(l.x + l.width, l.y + l.height);
+        glTexCoord2f(0.0f, 1.0f);
         glVertex2f(l.x, l.y + l.height);
         glEnd();
     }
+
+    glDisable(GL_TEXTURE_2D);
 
     // Laranja
     glColor3f(1.0f, 0.5f, 0.0f);
