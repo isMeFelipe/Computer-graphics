@@ -226,6 +226,7 @@ void renderGame()
     renderPlayer();
     renderVilao();
     renderProjectiles();
+    renderPreview();
 }
 
 // ===============
