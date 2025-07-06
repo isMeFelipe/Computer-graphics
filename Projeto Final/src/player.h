@@ -7,6 +7,7 @@ void playerKeyPress(unsigned char key, int x, int y);
 void playerKeyRelease(unsigned char key, int x, int y);
 void playerSpecialPress(int key);
 void loadPlayerTexture();
+GLuint loadTexture(const char *filename);
 
 extern float playerX, playerY;
 extern float playerVelocityY;

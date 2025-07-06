@@ -7,5 +7,5 @@ void renderProjectiles();        // Desenha os projéteis
 void handleVilaoSpecialKeyPress(int key);
 void updatePreview();          
 void renderPreview();
-void loadVilaoTexture(const char *filename); // Carrega textura do vilão
-
+void loadVilaoTextures();       // Carrega textura do vilão
+void loadProjectileTextures(); // Carrega texturas dos projéteis

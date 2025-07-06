@@ -4,15 +4,69 @@
 #include "vilao.h"
 #include "globals.h"
 
+// Dimensões atuais da janela, usadas para manter a proporção e posicionar a mini câmera corretamente
 int windowWidth = 800;
 int windowHeight = 600;
 
+GLuint backgroundTextureID;
+
+void renderBackground(int x, int y, int width, int height)
+{
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, backgroundTextureID);
+    glColor3f(1, 1, 1);
+
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 0);
+    glVertex2f(x, y);
+    glTexCoord2f(1, 0);
+    glVertex2f(x + width, y);
+    glTexCoord2f(1, 1);
+    glVertex2f(x + width, y + height);
+    glTexCoord2f(0, 1);
+    glVertex2f(x, y + height);
+    glEnd();
+
+    glDisable(GL_TEXTURE_2D);
+}
+
+// Função principal de renderização
 void display()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // --- Câmera principal (seguindo jogador dinamicamente) ---
-    glViewport(0, 0, windowWidth, windowHeight); // use variáveis globais atualizadas no reshape
+    // Desenha o fundo texturizado
+    glViewport(0, 0, windowWidth, windowHeight);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0, windowWidth, 0, windowHeight);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, backgroundTextureID);
+    glColor3f(1, 1, 1);
+
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 0);
+    glVertex2f(0, 0);
+
+    glTexCoord2f(1, 0);
+    glVertex2f(windowWidth, 0);
+
+    glTexCoord2f(1, 1);
+    glVertex2f(windowWidth, windowHeight);
+
+    glTexCoord2f(0, 1);
+    glVertex2f(0, windowHeight);
+    glEnd();
+
+    glDisable(GL_TEXTURE_2D);
+
+    // Agora configura a câmera principal (como antes)
+    glViewport(0, 0, windowWidth, windowHeight);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -21,108 +75,131 @@ void display()
     if (cameraY < 0)
         cameraY = 0;
 
-    gluOrtho2D(0, 800, cameraY, cameraY + 600); // Área visível do jogo (ajustável)
+    gluOrtho2D(0, 800, cameraY, cameraY + 600);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
     renderGame();
 
-    // --- Mini-câmera do vilão ---
+    // -------------------------------
+    // MINI CÂMERA DO VILÃO (canto inferior direito)
+    // -------------------------------
 
     int miniWidth = 200;
     int miniHeight = 150;
 
-    int miniX = windowWidth - miniWidth;
+    // Posiciona a mini câmera no canto inferior direito da janela
+    int miniX = 0;
     int miniY = windowHeight - miniHeight;
 
     glViewport(miniX, miniY, miniWidth, miniHeight);
 
+    // Limpa apenas a área da mini viewport
     glEnable(GL_SCISSOR_TEST);
     glScissor(miniX, miniY, miniWidth, miniHeight);
     glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
+    // Salva a projeção principal e define uma nova para a mini câmera
     glMatrixMode(GL_PROJECTION);
-    glPushMatrix(); // Salva a projeção principal
+    glPushMatrix();
     glLoadIdentity();
 
+    // Define o que a mini câmera vai mostrar (região ao redor do vilão)
     gluOrtho2D(vilaoX - 150, vilaoX + 150, vilaoY - 50, vilaoY + 250);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    renderBackground(vilaoX - 150, vilaoY - 50, 300, 300);
+
+    // Renderiza o vilão, projéteis e indicadores na mini câmera
     renderVilao();
     renderProjectiles();
     renderPreview();
 
+    // Restaura a projeção e viewport da câmera principal
     glMatrixMode(GL_PROJECTION);
-    glPopMatrix(); // Restaura a projeção principal
+    glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
+    glViewport(0, 0, windowWidth, windowHeight);
 
-    glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
-
+    // Troca os buffers para exibir o frame renderizado
     glutSwapBuffers();
 }
 
+// Atualiza o estado do jogo e solicita novo redraw
 void update(int value)
 {
     updateGame();
     glutPostRedisplay();
-    glutTimerFunc(16, update, 0);
+    glutTimerFunc(16, update, 0); // Chama novamente em ~60 FPS
 }
 
+// Trata teclas especiais (usadas pelo vilão)
 void specialKeyPress(int key, int x, int y)
 {
     handleVilaoSpecialKeyPress(key);
 }
 
+// Ajusta a viewport e guarda novas dimensões da janela
 void reshape(int width, int height)
 {
     if (height == 0)
         height = 1;
 
+    // Atualiza as dimensões globais
     windowWidth = width;
     windowHeight = height;
 
     glViewport(0, 0, width, height);
 
-    // Não defina gluOrtho2D aqui — será feito dinamicamente no display()
-
+    // Não definimos projeção fixa aqui — ela será atualizada dinamicamente no display()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(0, 800, 0, 600); // apenas valor neutro temporário
+    gluOrtho2D(0, 800, 0, 600); // Projeção neutra temporária
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
 
+void loadBackgroundTexture()
+{
+    backgroundTextureID = loadTexture("../assets/textures/background_1.png");
+}
+
+// Função principal
 int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(800, 600);
     glutCreateWindow("Donkey Kong Laranja");
-    glutReshapeFunc(reshape);
 
+    // Habilita transparência
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // REGISTROS DE INPUT
+    // Registra callbacks de entrada
     glutKeyboardFunc(playerKeyPress);
     glutKeyboardUpFunc(playerKeyRelease);
-
     glutSpecialFunc(specialKeyPress);
+    glutReshapeFunc(reshape);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
+    // Inicializa lógica do jogo e texturas
     initGame();
-    loadVilaoTexture("../assets/textures/villian_idle1.png");
 
+    loadBackgroundTexture();
+    loadProjectileTextures();
+    loadVilaoTextures();
+
+    // Registra funções principais do loop
     glutDisplayFunc(display);
     glutTimerFunc(0, update, 0);
 
+    // Inicia o loop principal
     glutMainLoop();
+
     return 0;
 }

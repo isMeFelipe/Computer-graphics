@@ -7,30 +7,52 @@
 #include <algorithm>
 #include "stb_image.h"
 
-float vilaoX = 400;
-float vilaoY = 1100; // topo da última plataforma
-int vilaoDirectionX = 1;
+// ------------------------
+// VARIÁVEIS DO VILÃO
+// ------------------------
 
-float projectileOffsetY = 0;
+float vilaoX = 400;
+float vilaoY = 1100;     // Início no topo da última plataforma
+int vilaoDirectionX = 1; // Direção do disparo (1 = direita, -1 = esquerda)
+
+float projectileOffsetY = 0; // Altura do disparo em relação ao vilão
 const float maxOffset = 50.0f;
 const float minOffset = 5.0f;
 
-float previewX = vilaoX;
+float previewX = vilaoX; // Posição do preview visual do disparo
 float previewY = vilaoY + projectileOffsetY;
 
-GLuint vilaoTextureID;
+GLuint vilaoTextureID; // Textura do vilão
 
-int lastLaunchTime = 0;
+int lastLaunchTime = 0; // Controle de cooldown
 const int cooldownMs = 500;
+GLuint projectileTextures[3];
+
+GLuint vilaoTextureIDs[2];
+int currentVilaoFrame = 0;
+int vilaoAnimationInterval = 500; // tempo entre frames em ms
+int lastVilaoFrameTime = 0;
+
+void updateVilaoAnimation();
+
+// ------------------------
+// ESTRUTURA DO PROJÉTIL
+// ------------------------
 
 struct Projectile
 {
     float x, y;
     float vx, vy;
     bool active;
+    GLuint textureID;
+    bool flipX;
 };
 
 std::vector<Projectile> projectiles;
+
+// ------------------------
+// INICIALIZAÇÃO
+// ------------------------
 
 void initVilao()
 {
@@ -40,15 +62,23 @@ void initVilao()
     projectiles.clear();
 }
 
+// ------------------------
+// ATUALIZAÇÃO DO VILÃO
+// ------------------------
+
 void updateVilao()
 {
-    // Vilão parado, apenas direção muda via input
+    updateVilaoAnimation();
 }
+
+// ------------------------
+// RENDERIZAÇÃO DO VILÃO
+// ------------------------
 
 void renderVilao()
 {
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, vilaoTextureID);
+    glBindTexture(GL_TEXTURE_2D, vilaoTextureIDs[currentVilaoFrame]);
     glColor3f(1, 1, 1);
 
     float scale = 0.3f;
@@ -56,24 +86,44 @@ void renderVilao()
     float h = 500 * scale / 2.0f;
 
     glBegin(GL_QUADS);
-    glTexCoord2f(0, 0);
-    glVertex2f(vilaoX - w, vilaoY);
-    glTexCoord2f(1, 0);
-    glVertex2f(vilaoX + w, vilaoY);
-    glTexCoord2f(1, 1);
-    glVertex2f(vilaoX + w, vilaoY + 2 * h);
-    glTexCoord2f(0, 1);
-    glVertex2f(vilaoX - w, vilaoY + 2 * h);
-    glEnd();
 
+    if (vilaoDirectionX == 1)
+    {
+        glTexCoord2f(0, 0);
+        glVertex2f(vilaoX - w, vilaoY);
+        glTexCoord2f(1, 0);
+        glVertex2f(vilaoX + w, vilaoY);
+        glTexCoord2f(1, 1);
+        glVertex2f(vilaoX + w, vilaoY + 2 * h);
+        glTexCoord2f(0, 1);
+        glVertex2f(vilaoX - w, vilaoY + 2 * h);
+    }
+    else
+    {
+        glTexCoord2f(1, 0);
+        glVertex2f(vilaoX - w, vilaoY);
+        glTexCoord2f(0, 0);
+        glVertex2f(vilaoX + w, vilaoY);
+        glTexCoord2f(0, 1);
+        glVertex2f(vilaoX + w, vilaoY + 2 * h);
+        glTexCoord2f(1, 1);
+        glVertex2f(vilaoX - w, vilaoY + 2 * h);
+    }
+
+    glEnd();
     glDisable(GL_TEXTURE_2D);
 }
+
+// ------------------------
+// DISPARO DE PROJÉTEIS
+// ------------------------
 
 void launchProjectile()
 {
     int now = glutGet(GLUT_ELAPSED_TIME);
     if (now - lastLaunchTime < cooldownMs)
         return;
+
     lastLaunchTime = now;
 
     Projectile p;
@@ -82,8 +132,18 @@ void launchProjectile()
     p.vx = vilaoDirectionX * 5.0f;
     p.vy = 0;
     p.active = true;
+    p.flipX = false;
+
+    // Sorteia textura aleatória entre garfo, faca e colher
+    int index = rand() % 3;
+    p.textureID = projectileTextures[index];
+
     projectiles.push_back(p);
 }
+
+// ------------------------
+// PREVIEW DO PROJÉTIL
+// ------------------------
 
 void updatePreview()
 {
@@ -93,8 +153,9 @@ void updatePreview()
 
 void renderPreview()
 {
-    glColor4f(0, 0, 1, 1);
+    glColor4f(0, 0, 1, 1); // Azul
     float size = 5.0f;
+
     glBegin(GL_QUADS);
     glVertex2f(previewX - size, previewY - size);
     glVertex2f(previewX + size, previewY - size);
@@ -102,6 +163,10 @@ void renderPreview()
     glVertex2f(previewX - size, previewY + size);
     glEnd();
 }
+
+// ------------------------
+// ATUALIZAÇÃO DOS PROJÉTEIS
+// ------------------------
 
 void updateProjectiles()
 {
@@ -112,23 +177,30 @@ void updateProjectiles()
 
         p.x += p.vx;
 
-        // Rebater nas paredes e descer plataforma
+        // Rebater nas paredes e descer uma "plataforma"
         if (p.x < 0 || p.x > 800)
         {
             p.vx *= -1;
+            p.flipX = !p.flipX;
             p.y -= 60;
         }
 
+        // Remove se sair da tela
         if (p.y < 0)
             p.active = false;
     }
 
+    // Remove projéteis inativos
     projectiles.erase(
         std::remove_if(projectiles.begin(), projectiles.end(),
                        [](const Projectile &p)
                        { return !p.active; }),
         projectiles.end());
 }
+
+// ------------------------
+// RENDERIZAÇÃO DOS PROJÉTEIS
+// ------------------------
 
 void renderProjectiles()
 {
@@ -137,15 +209,53 @@ void renderProjectiles()
         if (!p.active)
             continue;
 
-        glColor3f(1, 0.3f, 0.3f);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, p.textureID);
+        glColor3f(1, 1, 1);
+
+        float size = 40.0f;
+
         glBegin(GL_QUADS);
-        glVertex2f(p.x, p.y);
-        glVertex2f(p.x + 10, p.y);
-        glVertex2f(p.x + 10, p.y + 10);
-        glVertex2f(p.x, p.y + 10);
+        if (p.flipX)
+        {
+            // Inverter horizontalmente
+            glTexCoord2f(1, 0);
+            glVertex2f(p.x, p.y);
+            glTexCoord2f(0, 0);
+            glVertex2f(p.x + size, p.y);
+            glTexCoord2f(0, 1);
+            glVertex2f(p.x + size, p.y + size);
+            glTexCoord2f(1, 1);
+            glVertex2f(p.x, p.y + size);
+        }
+        else
+        {
+            // Normal
+            glTexCoord2f(0, 0);
+            glVertex2f(p.x, p.y);
+            glTexCoord2f(1, 0);
+            glVertex2f(p.x + size, p.y);
+            glTexCoord2f(1, 1);
+            glVertex2f(p.x + size, p.y + size);
+            glTexCoord2f(0, 1);
+            glVertex2f(p.x, p.y + size);
+        }
         glEnd();
+
+        glDisable(GL_TEXTURE_2D);
     }
 }
+
+void loadProjectileTextures()
+{
+    projectileTextures[0] = loadTexture("../assets/textures/fork.png");
+    projectileTextures[1] = loadTexture("../assets/textures/knife.png");
+    projectileTextures[2] = loadTexture("../assets/textures/spoon.png");
+}
+
+// ------------------------
+// INPUT DO VILÃO (TECLAS ESPECIAIS)
+// ------------------------
 
 void handleVilaoSpecialKeyPress(int key)
 {
@@ -154,44 +264,47 @@ void handleVilaoSpecialKeyPress(int key)
     case GLUT_KEY_LEFT:
         vilaoDirectionX = -1;
         break;
+
     case GLUT_KEY_RIGHT:
         vilaoDirectionX = 1;
         break;
+
     case GLUT_KEY_UP:
         projectileOffsetY += 5.0f;
         if (projectileOffsetY > maxOffset)
             projectileOffsetY = maxOffset;
         break;
+
     case GLUT_KEY_DOWN:
         projectileOffsetY -= 5.0f;
         if (projectileOffsetY < minOffset)
             projectileOffsetY = minOffset;
         break;
+
     case GLUT_KEY_F1:
         launchProjectile();
         break;
     }
+
     updatePreview();
 }
 
-void loadVilaoTexture(const char *filename)
+// ------------------------
+// CARREGAMENTO DA TEXTURA DO VILÃO
+// ------------------------
+
+void loadVilaoTextures()
 {
-    int width, height, channels;
-    unsigned char *data = stbi_load(filename, &width, &height, &channels, 4);
+    vilaoTextureIDs[0] = loadTexture("../assets/textures/vilao_idle1.png");
+    vilaoTextureIDs[1] = loadTexture("../assets/textures/vilao_idle2.png");
+}
 
-    if (!data)
+void updateVilaoAnimation()
+{
+    int now = glutGet(GLUT_ELAPSED_TIME);
+    if (now - lastVilaoFrameTime > vilaoAnimationInterval)
     {
-        printf("Falha ao carregar textura %s\n", filename);
-        return;
+        currentVilaoFrame = (currentVilaoFrame + 1) % 2;
+        lastVilaoFrameTime = now;
     }
-
-    glGenTextures(1, &vilaoTextureID);
-    glBindTexture(GL_TEXTURE_2D, vilaoTextureID);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-
-    stbi_image_free(data);
 }
