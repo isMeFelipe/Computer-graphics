@@ -120,7 +120,7 @@ void updatePlayer()
     // Checa colisão com plataformas se não estiver ignorando
     if (!ignorePlatform)
     {
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < PLATFORM_COUNT; i++)
         {
             Platform p = platforms[i];
 
