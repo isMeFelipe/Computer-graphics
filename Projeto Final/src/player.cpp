@@ -269,7 +269,7 @@ void playerKeyPress(unsigned char key, int x, int y)
 
         if (playerOnGround)
         {
-            playerVelocityY = 5.0f; // Pulo
+            playerVelocityY = 50.0f; // Pulo
             playerOnGround = false;
         }
     }

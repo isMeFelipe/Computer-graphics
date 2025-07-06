@@ -1,6 +1,7 @@
 #include "game.h"
 #include "player.h"
 #include "globals.h"
+#include "vilao.h"
 
 #include <GL/glut.h>
 #include <cmath>
@@ -48,6 +49,10 @@ void initScenario()
 
         ladders[i] = {ladderX, ladderY, 20, ladderHeight};
     }
+
+    // Posicionar o vilão na última plataforma
+    vilaoX = 400;
+    vilaoY = platforms[PLATFORM_COUNT - 1].y + platforms[PLATFORM_COUNT - 1].height;
 }
 
 float getRandomLadderXPosition(const std::vector<float> &existingXs, float minDistance)
@@ -164,6 +169,8 @@ void updateGame()
         updatePlayerPhysics();
 
     updatePlayer();
+    updateVilao();
+    updateProjectiles();
 }
 
 // ===============
@@ -217,6 +224,8 @@ void renderGame()
 {
     renderScenario();
     renderPlayer();
+    renderVilao();
+    renderProjectiles();
 }
 
 // ===============

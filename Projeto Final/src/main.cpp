@@ -1,6 +1,8 @@
 #include <GL/glut.h>
 #include "game.h"
 #include "player.h"
+#include "vilao.h"
+#include "globals.h"
 
 void display()
 {
@@ -30,6 +32,11 @@ void update(int value)
     glutTimerFunc(16, update, 0);
 }
 
+void specialKeyPress(int key, int x, int y)
+{
+    handleVilaoSpecialKeyPress(key);
+}
+
 int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
@@ -43,6 +50,8 @@ int main(int argc, char **argv)
     // REGISTROS DE INPUT
     glutKeyboardFunc(playerKeyPress);
     glutKeyboardUpFunc(playerKeyRelease);
+
+    glutSpecialFunc(specialKeyPress);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
