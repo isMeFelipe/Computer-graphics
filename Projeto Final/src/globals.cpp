@@ -11,3 +11,9 @@ GLuint heartFullTextureID = 0;
 GLuint heartEmptyTextureID = 0;
 
 int invulnerabilityFrames = 0;
+
+Mix_Chunk *hitSound = nullptr;
+Mix_Music *bgMusic = nullptr;
+Mix_Chunk *gameOverSound = nullptr;
+
+int gameState = 0;

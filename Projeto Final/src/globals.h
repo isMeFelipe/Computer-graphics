@@ -1,5 +1,6 @@
 #include "platform.h"
 #include "ladder.h"
+#include <SDL2/SDL_mixer.h>
 
 #define PLATFORM_COUNT 30
 extern Platform platforms[PLATFORM_COUNT];
@@ -21,3 +22,10 @@ extern int invulnerabilityFrames;
 extern int playerHealth; // vai de 0 a 5
 extern GLuint heartFullTextureID;
 extern GLuint heartEmptyTextureID;
+
+
+extern Mix_Music* bgMusic;
+extern Mix_Chunk* hitSound;
+extern Mix_Chunk* gameOverSound;
+
+extern int gameState;

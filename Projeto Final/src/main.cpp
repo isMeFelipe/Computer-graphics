@@ -13,9 +13,6 @@ int windowHeight = 600;
 
 GLuint backgroundTextureID;
 
-Mix_Chunk *hitSound = nullptr;
-Mix_Music *bgMusic = nullptr;
-
 void renderBackground(int x, int y, int width, int height)
 {
     glEnable(GL_TEXTURE_2D);
@@ -41,96 +38,123 @@ void display()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // Desenha o fundo texturizado
-    glViewport(0, 0, windowWidth, windowHeight);
+    if (gameState == 1)
+    {
+        // Desenha o fundo texturizado
+        glViewport(0, 0, windowWidth, windowHeight);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, windowWidth, 0, windowHeight);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluOrtho2D(0, windowWidth, 0, windowHeight);
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
 
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, backgroundTextureID);
-    glColor3f(1, 1, 1);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, backgroundTextureID);
+        glColor3f(1, 1, 1);
 
-    glBegin(GL_QUADS);
-    glTexCoord2f(0, 0);
-    glVertex2f(0, 0);
+        glBegin(GL_QUADS);
+        glTexCoord2f(0, 0);
+        glVertex2f(0, 0);
 
-    glTexCoord2f(1, 0);
-    glVertex2f(windowWidth, 0);
+        glTexCoord2f(1, 0);
+        glVertex2f(windowWidth, 0);
 
-    glTexCoord2f(1, 1);
-    glVertex2f(windowWidth, windowHeight);
+        glTexCoord2f(1, 1);
+        glVertex2f(windowWidth, windowHeight);
 
-    glTexCoord2f(0, 1);
-    glVertex2f(0, windowHeight);
-    glEnd();
+        glTexCoord2f(0, 1);
+        glVertex2f(0, windowHeight);
+        glEnd();
 
-    glDisable(GL_TEXTURE_2D);
+        glDisable(GL_TEXTURE_2D);
 
-    // Agora configura a câmera principal (como antes)
-    glViewport(0, 0, windowWidth, windowHeight);
+        // Agora configura a câmera principal (como antes)
+        glViewport(0, 0, windowWidth, windowHeight);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
 
-    float cameraY = playerY - 300;
-    if (cameraY < 0)
-        cameraY = 0;
+        float cameraY = playerY - 300;
+        if (cameraY < 0)
+            cameraY = 0;
 
-    gluOrtho2D(0, 800, cameraY, cameraY + 600);
+        gluOrtho2D(0, 800, cameraY, cameraY + 600);
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
 
-    renderGame();
+        renderGame();
 
-    // -------------------------------
-    // MINI CÂMERA DO VILÃO (canto inferior direito)
-    // -------------------------------
+        // -------------------------------
+        // MINI CÂMERA DO VILÃO (canto inferior direito)
+        // -------------------------------
 
-    int miniWidth = 200;
-    int miniHeight = 150;
+        int miniWidth = 200;
+        int miniHeight = 150;
 
-    // Posiciona a mini câmera no canto inferior direito da janela
-    int miniX = 0;
-    int miniY = windowHeight - miniHeight;
+        // Posiciona a mini câmera no canto inferior direito da janela
+        int miniX = 0;
+        int miniY = windowHeight - miniHeight;
 
-    glViewport(miniX, miniY, miniWidth, miniHeight);
+        glViewport(miniX, miniY, miniWidth, miniHeight);
 
-    // Limpa apenas a área da mini viewport
-    glEnable(GL_SCISSOR_TEST);
-    glScissor(miniX, miniY, miniWidth, miniHeight);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glDisable(GL_SCISSOR_TEST);
+        // Limpa apenas a área da mini viewport
+        glEnable(GL_SCISSOR_TEST);
+        glScissor(miniX, miniY, miniWidth, miniHeight);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDisable(GL_SCISSOR_TEST);
 
-    // Salva a projeção principal e define uma nova para a mini câmera
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
+        // Salva a projeção principal e define uma nova para a mini câmera
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
 
-    // Define o que a mini câmera vai mostrar (região ao redor do vilão)
-    gluOrtho2D(vilaoX - 150, vilaoX + 150, vilaoY - 50, vilaoY + 250);
+        // Define o que a mini câmera vai mostrar (região ao redor do vilão)
+        gluOrtho2D(vilaoX - 150, vilaoX + 150, vilaoY - 50, vilaoY + 250);
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
 
-    renderBackground(vilaoX - 150, vilaoY - 50, 300, 300);
+        renderBackground(vilaoX - 150, vilaoY - 50, 300, 300);
 
-    // Renderiza o vilão, projéteis e indicadores na mini câmera
-    renderVilao();
-    renderProjectiles();
-    renderPreview();
+        // Renderiza o vilão, projéteis e indicadores na mini câmera
+        renderVilao();
+        renderProjectiles();
+        renderPreview();
 
-    // Restaura a projeção e viewport da câmera principal
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glViewport(0, 0, windowWidth, windowHeight);
+        // Restaura a projeção e viewport da câmera principal
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glViewport(0, 0, windowWidth, windowHeight);
+    }
+    else if (gameState == 0)
+    {
+        glColor3f(1, 0, 0); // vermelho
 
+        // Configura a projeção ortográfica para a tela toda
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluOrtho2D(0, windowWidth, 0, windowHeight);
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        // Exemplo de texto simples - requer glutBitmapString ou equivalente
+        // Ou desenhe um quad com textura GameOver
+
+        // Aqui só para exemplo, desenha um quad vermelho centralizado
+        glBegin(GL_QUADS);
+        glVertex2f(windowWidth / 2 - 150, windowHeight / 2 - 50);
+        glVertex2f(windowWidth / 2 + 150, windowHeight / 2 - 50);
+        glVertex2f(windowWidth / 2 + 150, windowHeight / 2 + 50);
+        glVertex2f(windowWidth / 2 - 150, windowHeight / 2 + 50);
+        glEnd();
+
+        // Você pode também desenhar um texto com glutBitmapCharacter para escrever "GAME OVER"
+    }
     // Troca os buffers para exibir o frame renderizado
     glutSwapBuffers();
 }
@@ -190,8 +214,9 @@ void initAudio()
 
     Mix_Chunk *hitSound = Mix_LoadWAV("./assets/sounds/hit.wav");
     Mix_Music *bgMusic = Mix_LoadMUS("./assets/sounds/music_loop.mp3");
+    gameOverSound = Mix_LoadWAV("./assets/sounds/game_over.mp3");
 
-    if (!hitSound || !bgMusic)
+    if (!hitSound || !bgMusic || !gameOverSound)
     {
         printf("Erro ao carregar sons: %s\n", Mix_GetError());
     }
@@ -203,6 +228,7 @@ void cleanupAudio()
 {
     Mix_FreeChunk(hitSound);
     Mix_FreeMusic(bgMusic);
+    Mix_FreeChunk(gameOverSound);
     Mix_CloseAudio();
     SDL_Quit();
 }
@@ -213,7 +239,7 @@ int main(int argc, char **argv)
     initAudio();
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-    glutInitWindowSize(800, 600);
+    glutInitWindowSize(1280, 960);
     glutCreateWindow("Donkey Kong Laranja");
 
     // Habilita transparência
@@ -239,7 +265,6 @@ int main(int argc, char **argv)
 
     // Inicia o loop principal
     glutMainLoop();
-
 
     return 0;
 }

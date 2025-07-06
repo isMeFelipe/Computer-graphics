@@ -15,6 +15,8 @@
 // Posição da laranja
 float laranjaX = 370, laranjaY = 550;
 
+
+
 // Prototipação
 float getRandomLadderXPosition(const std::vector<float> &existingXs, float minDistance);
 void checkProjectileCollisions();
@@ -27,7 +29,7 @@ void initScenario()
     std::srand(static_cast<unsigned int>(time(0)));
 
     float platformWidth = 800.0f;
-    float gapY = 80;
+    float gapY = 100;
     float minDistance = 100.0f;
     std::vector<float> usedLadderXs;
 
@@ -170,6 +172,13 @@ void initGame()
 
 void updateGame()
 {
+    if (playerHealth <= 0 && gameState == 1)
+    {
+        gameState = 0;
+        Mix_PlayChannel(-1, gameOverSound, 0);
+        Mix_HaltMusic(); // Para a música de fundo
+    }
+
     if (invulnerabilityFrames > 0)
         invulnerabilityFrames--;
 

@@ -268,6 +268,18 @@ void renderPlayer()
 // --- Entrada do teclado ---
 void playerKeyPress(unsigned char key, int x, int y)
 {
+    if (gameState == 0)
+    {
+        if (key == 'r' || key == 'R')
+        {
+            gameState = 1;
+            playerHealth = 5;
+            initGame(); // reinicia variáveis do jogo
+            glutPostRedisplay();
+        }
+        return; // bloqueia outras teclas enquanto está em game over
+    }
+
     if (key == 'a' || key == 'A')
         keyLeftPressed = true;
     else if (key == 'd' || key == 'D')
