@@ -172,7 +172,7 @@ void reshape(int width, int height)
 
 void loadBackgroundTexture()
 {
-    backgroundTextureID = loadTexture("../assets/textures/background_1.png");
+    backgroundTextureID = loadTexture("./assets/textures/background_1.png");
 }
 
 void initAudio()
@@ -188,8 +188,8 @@ void initAudio()
         return;
     }
 
-    Mix_Chunk *hitSound = Mix_LoadWAV("../assets/sounds/hit.wav");
-    Mix_Music *bgMusic = Mix_LoadMUS("../assets/sounds/music_loop.mp3");
+    Mix_Chunk *hitSound = Mix_LoadWAV("./assets/sounds/hit.wav");
+    Mix_Music *bgMusic = Mix_LoadMUS("./assets/sounds/music_loop.mp3");
 
     if (!hitSound || !bgMusic)
     {

@@ -321,14 +321,14 @@ void playerSpecialPress(int key)
 // --- Carrega texturas do jogador ---
 void loadPlayerTexture()
 {
-    idleTexture = loadTexture("../assets/textures/player_idle.png");
-    walkTexture = loadTexture("../assets/textures/player_walk.png");
-    jumpTexture = loadTexture("../assets/textures/player_jump.png");
+    idleTexture = loadTexture("./assets/textures/player_idle.png");
+    walkTexture = loadTexture("./assets/textures/player_walk.png");
+    jumpTexture = loadTexture("./assets/textures/player_jump.png");
 }
 
 void loadSounds()
 {
-    playerHitSound = Mix_LoadWAV("../assets/sounds/hit.wav");
+    playerHitSound = Mix_LoadWAV("./assets/sounds/hit.wav");
     if (!playerHitSound)
     {
         printf("Failed to load hit sound: %s\n", Mix_GetError());

@@ -6,7 +6,7 @@ GLuint ladderTextureID;
 
 void loadLadderTexture()
 {
-    ladderTextureID = loadTexture("../assets/textures/ladder.png");
+    ladderTextureID = loadTexture("./assets/textures/ladder.png");
 }
 void renderLadder(float x, float y, float width, float height)
 {

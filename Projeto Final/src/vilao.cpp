@@ -269,9 +269,9 @@ void renderProjectiles()
 
 void loadProjectileTextures()
 {
-    projectileTextures[0] = loadTexture("../assets/textures/fork.png");
-    projectileTextures[1] = loadTexture("../assets/textures/knife.png");
-    projectileTextures[2] = loadTexture("../assets/textures/spoon.png");
+    projectileTextures[0] = loadTexture("./assets/textures/fork.png");
+    projectileTextures[1] = loadTexture("./assets/textures/knife.png");
+    projectileTextures[2] = loadTexture("./assets/textures/spoon.png");
 }
 
 // ------------------------
@@ -316,8 +316,8 @@ void handleVilaoSpecialKeyPress(int key)
 
 void loadVilaoTextures()
 {
-    vilaoTextureIDs[0] = loadTexture("../assets/textures/vilao_idle1.png");
-    vilaoTextureIDs[1] = loadTexture("../assets/textures/vilao_idle2.png");
+    vilaoTextureIDs[0] = loadTexture("./assets/textures/vilao_idle1.png");
+    vilaoTextureIDs[1] = loadTexture("./assets/textures/vilao_idle2.png");
 }
 
 void updateVilaoAnimation()

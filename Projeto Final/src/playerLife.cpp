@@ -8,8 +8,8 @@ GLuint loadTexture(const char *filename);
 
 void loadHeartTextures()
 {
-    heartFullTextureID = loadTexture("../assets/textures/heart_red.png");
-    heartEmptyTextureID = loadTexture("../assets/textures/heart_black.png");
+    heartFullTextureID = loadTexture("./assets/textures/heart_red.png");
+    heartEmptyTextureID = loadTexture("./assets/textures/heart_black.png");
 }
 
 void renderHearts()
