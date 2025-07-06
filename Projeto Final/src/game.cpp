@@ -165,6 +165,7 @@ void initGame()
     loadPlayerTexture();
     loadLadderTexture();
     loadHeartTextures();
+    loadSounds();
 }
 
 void updateGame()
@@ -290,6 +291,7 @@ void checkProjectileCollisions()
             {
                 playerHealth--;
                 // printf("Player hit! Health: %d\n", playerHealth);
+                playerTakeHit();
                 invulnerabilityFrames = 60; // 1 segundo invulnerável
                 proj.active = false;
             }

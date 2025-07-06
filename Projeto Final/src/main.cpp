@@ -4,11 +4,17 @@
 #include "vilao.h"
 #include "globals.h"
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
+
 // Dimensões atuais da janela, usadas para manter a proporção e posicionar a mini câmera corretamente
 int windowWidth = 800;
 int windowHeight = 600;
 
 GLuint backgroundTextureID;
+
+Mix_Chunk *hitSound = nullptr;
+Mix_Music *bgMusic = nullptr;
 
 void renderBackground(int x, int y, int width, int height)
 {
@@ -169,9 +175,42 @@ void loadBackgroundTexture()
     backgroundTextureID = loadTexture("../assets/textures/background_1.png");
 }
 
+void initAudio()
+{
+    if (SDL_Init(SDL_INIT_AUDIO) < 0)
+    {
+        printf("SDL_Init erro: %s\n", SDL_GetError());
+        return;
+    }
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+    {
+        printf("Mix_OpenAudio erro: %s\n", Mix_GetError());
+        return;
+    }
+
+    Mix_Chunk *hitSound = Mix_LoadWAV("../assets/sounds/hit.wav");
+    Mix_Music *bgMusic = Mix_LoadMUS("../assets/sounds/music_loop.mp3");
+
+    if (!hitSound || !bgMusic)
+    {
+        printf("Erro ao carregar sons: %s\n", Mix_GetError());
+    }
+
+    Mix_PlayMusic(bgMusic, -1);
+}
+
+void cleanupAudio()
+{
+    Mix_FreeChunk(hitSound);
+    Mix_FreeMusic(bgMusic);
+    Mix_CloseAudio();
+    SDL_Quit();
+}
+
 // Função principal
 int main(int argc, char **argv)
 {
+    initAudio();
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(800, 600);
@@ -200,6 +239,7 @@ int main(int argc, char **argv)
 
     // Inicia o loop principal
     glutMainLoop();
+
 
     return 0;
 }

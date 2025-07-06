@@ -1,7 +1,6 @@
 #include "player.h"
 #include "globals.h"
 #include "game.h"
-#include <GL/glut.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include <iostream>
@@ -24,6 +23,8 @@ bool facingRight = true;
 
 bool climbingUp = false;
 bool climbingDown = false;
+
+Mix_Chunk *playerHitSound = nullptr;
 
 // --- Texturas ---
 GLuint idleTexture;
@@ -204,7 +205,7 @@ void renderPlayer()
             return; // não desenha (pisca)
         }
     }
-    
+
     glColor3f(1.0f, 1.0f, 1.0f);
 
     GLuint currentTexture;
@@ -323,6 +324,20 @@ void loadPlayerTexture()
     idleTexture = loadTexture("../assets/textures/player_idle.png");
     walkTexture = loadTexture("../assets/textures/player_walk.png");
     jumpTexture = loadTexture("../assets/textures/player_jump.png");
+}
+
+void loadSounds()
+{
+    playerHitSound = Mix_LoadWAV("../assets/sounds/hit.wav");
+    if (!playerHitSound)
+    {
+        printf("Failed to load hit sound: %s\n", Mix_GetError());
+    }
+}
+
+void playerTakeHit()
+{
+    Mix_PlayChannel(-1, playerHitSound, 0);
 }
 
 // --- Função auxiliar para carregar textura ---
