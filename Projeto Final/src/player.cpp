@@ -196,6 +196,15 @@ void updatePlayer()
 // --- Renderiza jogador com espelhamento baseado na direção ---
 void renderPlayer()
 {
+
+    if (invulnerabilityFrames > 0)
+    {
+        if ((invulnerabilityFrames / 5) % 2 == 0)
+        {
+            return; // não desenha (pisca)
+        }
+    }
+    
     glColor3f(1.0f, 1.0f, 1.0f);
 
     GLuint currentTexture;

@@ -16,12 +16,8 @@ const float PLAYER_HEIGHT = 32.0f;
 extern float vilaoX, vilaoY;
 extern float vilaoDirectionX; // Direção: -1 (esquerda), 1 (direita)
 
-struct Projectile
-{
-    float x, y;
-    float vx, vy;
-    bool active;
-};
+extern int invulnerabilityFrames;
 
-const int MAX_PROJECTILES = 10;
-extern Projectile projectiles[MAX_PROJECTILES];
+extern int playerHealth; // vai de 0 a 5
+extern GLuint heartFullTextureID;
+extern GLuint heartEmptyTextureID;

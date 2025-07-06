@@ -2,8 +2,6 @@
 #include "player.h"
 #include "platform.h"
 
-#include <GL/glut.h>
-#include <vector>
 #include <algorithm>
 #include "stb_image.h"
 
@@ -38,15 +36,6 @@ void updateVilaoAnimation();
 // ------------------------
 // ESTRUTURA DO PROJÉTIL
 // ------------------------
-
-struct Projectile
-{
-    float x, y;
-    float vx, vy;
-    bool active;
-    GLuint textureID;
-    bool flipX;
-};
 
 std::vector<Projectile> projectiles;
 

@@ -3,18 +3,21 @@
 #include "globals.h"
 #include "vilao.h"
 #include "ladder.h"
+#include "playerLife.h"
 
 #include <GL/glut.h>
 #include <cmath>
 #include <ctime>
 #include <vector>
 #include <cstdlib> // Para rand(), srand()
+#include <cstdio>
 
 // Posição da laranja
 float laranjaX = 370, laranjaY = 550;
 
 // Prototipação
 float getRandomLadderXPosition(const std::vector<float> &existingXs, float minDistance);
+void checkProjectileCollisions();
 
 // =========================
 // Inicialização do cenário
@@ -161,17 +164,24 @@ void initGame()
     initPlayer();
     loadPlayerTexture();
     loadLadderTexture();
+    loadHeartTextures();
 }
 
 void updateGame()
 {
+    if (invulnerabilityFrames > 0)
+        invulnerabilityFrames--;
+
     checkLadderCollision();
 
     if (!playerOnLadder)
         updatePlayerPhysics();
 
+    checkProjectileCollisions();
+
     updatePlayer();
     updateVilao();
+
     updateProjectiles();
 }
 
@@ -238,6 +248,7 @@ void renderGame()
     renderVilao();
     renderProjectiles();
     renderPreview();
+    renderHearts();
 }
 
 // ===============
@@ -251,4 +262,37 @@ void handleKeyPress(unsigned char key, int x, int y)
 void handleKeyRelease(unsigned char key, int x, int y)
 {
     playerKeyRelease(key, x, y);
+}
+
+void checkProjectileCollisions()
+{
+    for (auto &proj : projectiles)
+    {
+        if (!proj.active)
+            continue;
+
+        float projLeft = proj.x;
+        float projRight = proj.x + 40; // mesmo size usado no render
+        float projBottom = proj.y;
+        float projTop = proj.y + 40;
+
+        float playerLeft = playerX;
+        float playerRight = playerX + PLAYER_WIDTH;
+        float playerBottom = playerY;
+        float playerTop = playerY + PLAYER_HEIGHT;
+
+        bool overlapX = playerRight > projLeft && playerLeft < projRight;
+        bool overlapY = playerTop > projBottom && playerBottom < projTop;
+
+        if (overlapX && overlapY)
+        {
+            if (invulnerabilityFrames == 0 && playerHealth > 0)
+            {
+                playerHealth--;
+                // printf("Player hit! Health: %d\n", playerHealth);
+                invulnerabilityFrames = 60; // 1 segundo invulnerável
+                proj.active = false;
+            }
+        }
+    }
 }
