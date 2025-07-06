@@ -162,12 +162,14 @@ void checkLadderCollision()
 // ======================
 void initGame()
 {
+    gameState = 1; // Jogo ativo
+    playerHealth = 5;
     initScenario();
     initPlayer();
     loadPlayerTexture();
     loadLadderTexture();
     loadHeartTextures();
-    loadSounds();
+    loadSounds();    
 }
 
 void updateGame()
@@ -176,7 +178,6 @@ void updateGame()
     {
         gameState = 0;
         Mix_PlayChannel(-1, gameOverSound, 0);
-        Mix_HaltMusic(); // Para a música de fundo
     }
 
     if (invulnerabilityFrames > 0)

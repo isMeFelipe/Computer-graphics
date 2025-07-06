@@ -270,11 +270,12 @@ void playerKeyPress(unsigned char key, int x, int y)
 {
     if (gameState == 0)
     {
-        if (key == 'r' || key == 'R')
+        if (key == 13) // 13 é o código ASCII para ENTER
         {
             gameState = 1;
             playerHealth = 5;
             initGame(); // reinicia variáveis do jogo
+            Mix_PlayMusic(bgMusic, -1);
             glutPostRedisplay();
         }
         return; // bloqueia outras teclas enquanto está em game over

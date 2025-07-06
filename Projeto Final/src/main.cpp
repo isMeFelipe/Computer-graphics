@@ -130,11 +130,10 @@ void display()
         glMatrixMode(GL_MODELVIEW);
         glViewport(0, 0, windowWidth, windowHeight);
     }
-    else if (gameState == 0)
+    if (gameState == 0)
     {
-        glColor3f(1, 0, 0); // vermelho
+        glViewport(0, 0, windowWidth, windowHeight);
 
-        // Configura a projeção ortográfica para a tela toda
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         gluOrtho2D(0, windowWidth, 0, windowHeight);
@@ -142,18 +141,91 @@ void display()
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-        // Exemplo de texto simples - requer glutBitmapString ou equivalente
-        // Ou desenhe um quad com textura GameOver
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, backgroundTextureID);
+        glColor3f(1, 1, 1);
 
-        // Aqui só para exemplo, desenha um quad vermelho centralizado
         glBegin(GL_QUADS);
-        glVertex2f(windowWidth / 2 - 150, windowHeight / 2 - 50);
-        glVertex2f(windowWidth / 2 + 150, windowHeight / 2 - 50);
-        glVertex2f(windowWidth / 2 + 150, windowHeight / 2 + 50);
-        glVertex2f(windowWidth / 2 - 150, windowHeight / 2 + 50);
+        glTexCoord2f(0, 0);
+        glVertex2f(0, 0);
+
+        glTexCoord2f(1, 0);
+        glVertex2f(windowWidth, 0);
+
+        glTexCoord2f(1, 1);
+        glVertex2f(windowWidth, windowHeight);
+
+        glTexCoord2f(0, 1);
+        glVertex2f(0, windowHeight);
         glEnd();
 
-        // Você pode também desenhar um texto com glutBitmapCharacter para escrever "GAME OVER"
+        glDisable(GL_TEXTURE_2D);
+
+        // Mensagens e fontes
+        const char *gameOverMsg = "GAME OVER";
+        void *gameOverFont = GLUT_BITMAP_TIMES_ROMAN_24;
+        const char *msg = "PRESSIONE 'ENTER' PARA INICIAR NOVO JOGO";
+        void *font = GLUT_BITMAP_HELVETICA_18;
+
+        // Larguras dos textos
+        int gameOverWidth = 0;
+        for (const char *c = gameOverMsg; *c != '\0'; c++)
+            gameOverWidth += glutBitmapWidth(gameOverFont, *c);
+
+        int msgWidth = 0;
+        for (const char *c = msg; *c != '\0'; c++)
+            msgWidth += glutBitmapWidth(font, *c);
+
+        int maxTextWidth = (gameOverWidth > msgWidth) ? gameOverWidth : msgWidth;
+
+        // Padding
+        float paddingX = 50.0f;
+        float paddingY = 30.0f;
+        float spacing = 20.0f; // Espaço entre as frases
+
+        // Alturas das fontes
+        float gameOverHeight = 30.0f; // Aproximado para TIMES_ROMAN_24
+        float msgHeight = 18.0f;      // Aproximado para HELVETICA_18
+
+        float rectWidth = maxTextWidth + 2 * paddingX;
+        float rectHeight = gameOverHeight + spacing + msgHeight + 2 * paddingY;
+
+        float rectX = (windowWidth - rectWidth) / 2.0f;
+        float rectY = (windowHeight - rectHeight) / 2.0f;
+
+        // Retângulo de fundo para ambas as frases
+        glColor4f(0, 0, 0, 0.7f); // Preto semi-transparente
+        glBegin(GL_QUADS);
+        glVertex2f(rectX, rectY);
+        glVertex2f(rectX + rectWidth, rectY);
+        glVertex2f(rectX + rectWidth, rectY + rectHeight);
+        glVertex2f(rectX, rectY + rectHeight);
+        glEnd();
+
+        // Posição do "GAME OVER"
+        float goX = (windowWidth - gameOverWidth) / 2.0f;
+        float goY = rectY + rectHeight - paddingY - gameOverHeight / 2.0f;
+
+        // Sombra para "GAME OVER"
+        glColor3f(0, 0, 0);
+        glRasterPos2f(goX + 2, goY - 2);
+        for (const char *c = gameOverMsg; *c != '\0'; c++)
+            glutBitmapCharacter(gameOverFont, *c);
+
+        // Texto "GAME OVER"
+        glColor3f(1, 0, 0);
+        glRasterPos2f(goX, goY);
+        for (const char *c = gameOverMsg; *c != '\0'; c++)
+            glutBitmapCharacter(gameOverFont, *c);
+
+        // Posição da mensagem de instrução
+        float msgX = (windowWidth - msgWidth) / 2.0f;
+        float msgY = goY - gameOverHeight / 2.0f - spacing;
+
+        glColor3f(1, 1, 1); // Azul para instrução
+        glRasterPos2f(msgX, msgY);
+        for (const char *c = msg; *c != '\0'; c++)
+            glutBitmapCharacter(font, *c);
     }
     // Troca os buffers para exibir o frame renderizado
     glutSwapBuffers();
