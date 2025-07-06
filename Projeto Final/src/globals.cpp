@@ -16,4 +16,7 @@ Mix_Chunk *hitSound = nullptr;
 Mix_Music *bgMusic = nullptr;
 Mix_Chunk *gameOverSound = nullptr;
 
-int gameState = 0;
+int gameState = 1;
+float orangeX = 0.0f;
+float orangeY = 0.0f;
+GLuint orangeTextureID;

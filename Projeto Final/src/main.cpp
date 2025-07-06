@@ -227,6 +227,105 @@ void display()
         for (const char *c = msg; *c != '\0'; c++)
             glutBitmapCharacter(font, *c);
     }
+
+    if (gameState == 2)
+    {
+        glViewport(0, 0, windowWidth, windowHeight);
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluOrtho2D(0, windowWidth, 0, windowHeight);
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, backgroundTextureID);
+        glColor3f(1, 1, 1);
+
+        glBegin(GL_QUADS);
+        glTexCoord2f(0, 0);
+        glVertex2f(0, 0);
+
+        glTexCoord2f(1, 0);
+        glVertex2f(windowWidth, 0);
+
+        glTexCoord2f(1, 1);
+        glVertex2f(windowWidth, windowHeight);
+
+        glTexCoord2f(0, 1);
+        glVertex2f(0, windowHeight);
+        glEnd();
+
+        glDisable(GL_TEXTURE_2D);
+
+        // Mensagens e fontes
+        const char *victoryMsg = "VOCE VENCEU!";
+        void *victoryFont = GLUT_BITMAP_TIMES_ROMAN_24;
+        const char *msg = "PRESSIONE 'ENTER' PARA INICIAR NOVO JOGO";
+        void *font = GLUT_BITMAP_HELVETICA_18;
+
+        // Larguras dos textos
+        int victoryWidth = 0;
+        for (const char *c = victoryMsg; *c != '\0'; c++)
+            victoryWidth += glutBitmapWidth(victoryFont, *c);
+
+        int msgWidth = 0;
+        for (const char *c = msg; *c != '\0'; c++)
+            msgWidth += glutBitmapWidth(font, *c);
+
+        int maxTextWidth = (victoryWidth > msgWidth) ? victoryWidth : msgWidth;
+
+        // Padding
+        float paddingX = 50.0f;
+        float paddingY = 30.0f;
+        float spacing = 20.0f; // Espaço entre as frases
+
+        // Alturas das fontes
+        float victoryHeight = 30.0f; // Aproximado para TIMES_ROMAN_24
+        float msgHeight = 18.0f;     // Aproximado para HELVETICA_18
+
+        float rectWidth = maxTextWidth + 2 * paddingX;
+        float rectHeight = victoryHeight + spacing + msgHeight + 2 * paddingY;
+
+        float rectX = (windowWidth - rectWidth) / 2.0f;
+        float rectY = (windowHeight - rectHeight) / 2.0f;
+
+        // Retângulo de fundo para ambas as frases
+        glColor4f(0, 0, 0, 0.7f); // Preto semi-transparente
+        glBegin(GL_QUADS);
+        glVertex2f(rectX, rectY);
+        glVertex2f(rectX + rectWidth, rectY);
+        glVertex2f(rectX + rectWidth, rectY + rectHeight);
+        glVertex2f(rectX, rectY + rectHeight);
+        glEnd();
+
+        // Posição do "VOCE VENCEU!"
+        float vX = (windowWidth - victoryWidth) / 2.0f;
+        float vY = rectY + rectHeight - paddingY - victoryHeight / 2.0f;
+
+        // Sombra para "VOCE VENCEU!"
+        glColor3f(0, 0, 0);
+        glRasterPos2f(vX + 2, vY - 2);
+        for (const char *c = victoryMsg; *c != '\0'; c++)
+            glutBitmapCharacter(victoryFont, *c);
+
+        // Texto "VOCE VENCEU!"
+        glColor3f(0, 0.7f, 0);
+        glRasterPos2f(vX, vY);
+        for (const char *c = victoryMsg; *c != '\0'; c++)
+            glutBitmapCharacter(victoryFont, *c);
+
+        // Posição da mensagem de instrução
+        float msgX = (windowWidth - msgWidth) / 2.0f;
+        float msgY = vY - victoryHeight / 2.0f - spacing;
+
+        glColor3f(1, 1, 1);
+        glRasterPos2f(msgX, msgY);
+        for (const char *c = msg; *c != '\0'; c++)
+            glutBitmapCharacter(font, *c);
+    }
+
     // Troca os buffers para exibir o frame renderizado
     glutSwapBuffers();
 }

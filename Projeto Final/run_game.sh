@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Compila o projeto
-g++ ./src/main.cpp ./src/game.cpp ./src/player.cpp ./src/globals.cpp ./src/vilao.cpp ./src/ladder.cpp ./src/playerLife.cpp -o jogo $(sdl2-config --cflags --libs) -lSDL2_mixer -lGL -lGLU -lglut
+g++ ./src/main.cpp ./src/game.cpp ./src/player.cpp ./src/globals.cpp ./src/vilao.cpp ./src/ladder.cpp ./src/playerLife.cpp ./src/orange.cpp -o jogo $(sdl2-config --cflags --libs) -lSDL2_mixer -lGL -lGLU -lglut
 
 # Verifica se compilou com sucesso
 if [ $? -eq 0 ]; then

@@ -268,7 +268,7 @@ void renderPlayer()
 // --- Entrada do teclado ---
 void playerKeyPress(unsigned char key, int x, int y)
 {
-    if (gameState == 0)
+    if (gameState != 1)
     {
         if (key == 13) // 13 é o código ASCII para ENTER
         {

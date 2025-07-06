@@ -4,6 +4,7 @@
 #include "vilao.h"
 #include "ladder.h"
 #include "playerLife.h"
+#include "orange.h"
 
 #include <GL/glut.h>
 #include <cmath>
@@ -11,11 +12,6 @@
 #include <vector>
 #include <cstdlib> // Para rand(), srand()
 #include <cstdio>
-
-// Posição da laranja
-float laranjaX = 370, laranjaY = 550;
-
-
 
 // Prototipação
 float getRandomLadderXPosition(const std::vector<float> &existingXs, float minDistance);
@@ -162,14 +158,15 @@ void checkLadderCollision()
 // ======================
 void initGame()
 {
-    gameState = 1; // Jogo ativo
     playerHealth = 5;
     initScenario();
     initPlayer();
+    loadOrangeTexture();
+    initOrange();
     loadPlayerTexture();
     loadLadderTexture();
     loadHeartTextures();
-    loadSounds();    
+    loadSounds();
 }
 
 void updateGame()
@@ -194,6 +191,7 @@ void updateGame()
     updateVilao();
 
     updateProjectiles();
+    checkVictory();
 }
 
 // ===============
@@ -237,18 +235,8 @@ void renderScenario()
     glDisable(GL_TEXTURE_2D);
 
     // Laranja
-    glColor3f(1.0f, 0.5f, 0.0f);
-    float cx = laranjaX + 16;
-    float cy = laranjaY + 16;
-    float radius = 16;
-    int seg = 30;
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex2f(cx, cy);
-    for (int i = 0; i <= seg; ++i)
-    {
-        float ang = 2.0f * 3.1415926f * i / seg;
-        glVertex2f(cx + cos(ang) * radius, cy + sin(ang) * radius);
-    }
+    renderOrange();
+
     glEnd();
 }
 

@@ -1,6 +1,7 @@
 #include "vilao.h"
 #include "player.h"
 #include "platform.h"
+#include "orange.h"
 
 #include <algorithm>
 #include "stb_image.h"
@@ -57,6 +58,9 @@ void initVilao()
 
 void updateVilao()
 {
+    orangeX = vilaoX + 50; // Ajusta a posição da laranja
+    orangeY = vilaoY;
+
     updateVilaoAnimation();
 }
 

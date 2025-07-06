@@ -29,3 +29,6 @@ extern Mix_Chunk* hitSound;
 extern Mix_Chunk* gameOverSound;
 
 extern int gameState;
+
+extern float orangeX, orangeY;
+extern GLuint orangeTextureID;
