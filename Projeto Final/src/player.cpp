@@ -2,6 +2,7 @@
 #include "globals.h"
 #include "game.h"
 #define STB_IMAGE_IMPLEMENTATION
+#include <SDL2/SDL_mixer.h>
 #include "stb_image.h"
 #include <iostream>
 
@@ -198,11 +199,11 @@ void updatePlayer()
 void renderPlayer()
 {
 
-    if (invulnerabilityFrames > 0)
+    if (invulnerabilityFrames > 0 || watermelonImmunityTimer > 0)
     {
-        if ((invulnerabilityFrames / 5) % 2 == 0)
+        if ((animationCounter  / 5) % 2 == 0)
         {
-            return; // não desenha (pisca)
+            return; 
         }
     }
 
@@ -275,10 +276,33 @@ void playerKeyPress(unsigned char key, int x, int y)
             gameState = 1;
             playerHealth = 5;
             initGame(); // reinicia variáveis do jogo
-            Mix_PlayMusic(bgMusic, -1);
+            Mix_HaltMusic();
+            
+            printf("DEBUG: bgMusic antes de tentar tocar no reinício: %p\n", (void*)bgMusic); 
+
+            Mix_HaltMusic();
+
+            if (bgMusic) { //
+                Mix_FreeMusic(bgMusic);
+                bgMusic = nullptr; 
+            }
+
+            
+            bgMusic = Mix_LoadMUS("./assets/sounds/music_loop.wav"); 
+            if (!bgMusic) { 
+                printf("Erro crítico: Falha ao recarregar music_loop.wav no reinício: %s\n", Mix_GetError());
+            } else {
+                
+                int playResult = Mix_PlayMusic(bgMusic, -1);
+                if (playResult == -1) {
+                    printf("Erro ao iniciar bgMusic recarregada no reinício: %s\n", Mix_GetError());
+                } else {
+                    printf("DEBUG: bgMusic recarregada e iniciada com sucesso.\n");
+                }
+            }
             glutPostRedisplay();
         }
-        return; // bloqueia outras teclas enquanto está em game over
+        return; 
     }
 
     if (key == 'a' || key == 'A')

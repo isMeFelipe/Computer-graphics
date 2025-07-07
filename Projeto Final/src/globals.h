@@ -1,5 +1,6 @@
 #include "platform.h"
 #include "ladder.h"
+#include "watermelon.h"
 #include <SDL2/SDL_mixer.h>
 
 #define PLATFORM_COUNT 30
@@ -15,7 +16,7 @@ const float PLAYER_WIDTH = 32.0f;
 const float PLAYER_HEIGHT = 32.0f;
 
 extern float vilaoX, vilaoY;
-extern float vilaoDirectionX; // Direção: -1 (esquerda), 1 (direita)
+extern float vilaoDirectionX; 
 
 extern int invulnerabilityFrames;
 
@@ -27,8 +28,12 @@ extern GLuint heartEmptyTextureID;
 extern Mix_Music* bgMusic;
 extern Mix_Chunk* hitSound;
 extern Mix_Chunk* gameOverSound;
+extern Mix_Music* victoryMusic;
 
 extern int gameState;
 
 extern float orangeX, orangeY;
 extern GLuint orangeTextureID;
+
+extern int watermelonImmunityTimer; // Contador para a imortalidade da melancia
+const int WATERMELON_IMMUNITY_DURATION = 300;

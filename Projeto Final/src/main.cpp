@@ -384,10 +384,11 @@ void initAudio()
     }
 
     Mix_Chunk *hitSound = Mix_LoadWAV("./assets/sounds/hit.wav");
-    Mix_Music *bgMusic = Mix_LoadMUS("./assets/sounds/music_loop.mp3");
+    Mix_Music *bgMusic = Mix_LoadMUS("./assets/sounds/music_loop.wav");
     gameOverSound = Mix_LoadWAV("./assets/sounds/game_over.mp3");
+    victoryMusic = Mix_LoadMUS("./assets/sounds/victory_music.mp3");
 
-    if (!hitSound || !bgMusic || !gameOverSound)
+    if (!hitSound || !bgMusic || !gameOverSound || !victoryMusic)
     {
         printf("Erro ao carregar sons: %s\n", Mix_GetError());
     }
@@ -400,6 +401,7 @@ void cleanupAudio()
     Mix_FreeChunk(hitSound);
     Mix_FreeMusic(bgMusic);
     Mix_FreeChunk(gameOverSound);
+    Mix_FreeMusic(victoryMusic);
     Mix_CloseAudio();
     SDL_Quit();
 }
@@ -411,7 +413,7 @@ int main(int argc, char **argv)
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(1280, 960);
-    glutCreateWindow("Donkey Kong Laranja");
+    glutCreateWindow("Jordana Kong Laranja");
 
     // Habilita transparência
     glEnable(GL_BLEND);

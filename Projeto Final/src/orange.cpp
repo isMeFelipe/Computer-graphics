@@ -1,5 +1,6 @@
 #include "globals.h"
 #include "player.h"
+#include <SDL2/SDL_mixer.h> 
 
 void initOrange()
 {
@@ -40,6 +41,12 @@ void checkVictory()
         playerY < orangeY + orangeSize &&
         playerY + playerSize > orangeY)
     {
-        gameState = 2; // Vitória!
+        if (gameState != 2) { // Evita tocar a música múltiplas vezes se já estiver em estado de vitória
+            gameState = 2; // Vitória!
+            Mix_HaltMusic(); // Para a música de fundo
+            if (victoryMusic) { // Verifica se a música foi carregada com sucesso
+                Mix_PlayMusic(victoryMusic, 1); // Toca a música de vitória uma vez
+            }
+        }
     }
 }
